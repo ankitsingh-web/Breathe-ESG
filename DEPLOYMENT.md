@@ -29,11 +29,15 @@ Access at: http://localhost:5173/
 
 ```bash
 cd c:\Users\ankit\OneDrive\Desktop\breathe-esg
-git init
 git add .
-git commit -m "Breathe ESG Platform"
-git branch -M main
-git remote add origin https://github.com/ankitsingh-web/breathe-esg.git
+git commit -m "Update documentation and project settings"
+git push
+```
+
+If the repository is not connected yet, add the remote using:
+
+```bash
+git remote add origin https://github.com/ankitsingh-web/Breathe-ESG.git
 git push -u origin main
 ```
 
