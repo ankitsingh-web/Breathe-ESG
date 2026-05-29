@@ -52,6 +52,18 @@ npm run dev
 
 Open http://localhost:5173/ in your browser.
 
+### Production Build
+
+**Frontend:**
+```bash
+cd frontend
+npm run build
+```
+
+**Backend:**
+- Ensure `.env` values are set for `DEBUG=False` and database credentials.
+- Configure a production-ready server such as Gunicorn.
+
 ### Environment Variables
 
 Create `.env` in `backend/`:
