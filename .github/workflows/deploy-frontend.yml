@@ -1,0 +1,38 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install --no-progress --loglevel=error
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+      
+      - name: Deploy to Vercel
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_SCOPE: ankitsingh-webs-projects
+        run: |
+          npx vercel --prod \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_SCOPE" \
+            --confirm
