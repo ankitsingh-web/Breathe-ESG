@@ -1,0 +1,12 @@
+# Ensure consistent line endings across platforms
+* text=auto
+*.py text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+frontend/node_modules/* binary
+backend/uploads/* binary
