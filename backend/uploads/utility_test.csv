@@ -1,0 +1,5 @@
+activity_type,value,unit,scope,record_date
+Electricity,25000,kwh,SCOPE2,2026-01-01
+Electricity,40,mwh,SCOPE2,2026-01-05
+Electricity,12000,kwh,SCOPE2,2026-01-10
+Electricity,18,mwh,SCOPE2,2026-01-15

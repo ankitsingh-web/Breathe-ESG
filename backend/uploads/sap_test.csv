@@ -1,0 +1,5 @@
+activity_type,value,unit,scope,record_date
+Diesel,1000,liters,SCOPE1,2026-01-01
+Diesel,300,gallons,SCOPE1,2026-01-02
+Petrol,500,liters,SCOPE1,2026-01-03
+Diesel,1500,liters,SCOPE1,2026-01-04
