@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import json
 import urllib.request
 import urllib.error
 import sys
-import os
 
 TOKEN = 'rnd_aRgBV2BdGIcfhMN5JDN2IiRMIYSH'
 REPO_URL = 'https://github.com/ankitsingh-web/Breathe-ESG.git'
@@ -22,19 +22,27 @@ try:
     req = urllib.request.Request('https://api.render.com/v1/owners', headers=headers)
     with urllib.request.urlopen(req, timeout=30) as resp:
         owners_data = json.load(resp)
-    if owners_data:
-        owner = owners_data[0]
-        owner_id = owner['id']
-        print(f'✓ Owner ID: {owner_id}')
+    
+    # API returns: [{"cursor": "...", "owner": {"id": "...", "name": "...", ...}}]
+    owner_id = None
+    if isinstance(owners_data, list) and len(owners_data) > 0:
+        if 'owner' in owners_data[0]:
+            owner_id = owners_data[0]['owner'].get('id')
+        elif 'id' in owners_data[0]:
+            owner_id = owners_data[0]['id']
+    
+    if owner_id:
+        print(f'[OK] Owner ID: {owner_id}')
     else:
-        print('✗ No owners found')
+        print('[ERROR] Could not extract owner ID from API response')
+        print(f'[DEBUG] Response structure: {owners_data}')
         sys.exit(1)
 except urllib.error.HTTPError as e:
-    print(f'✗ HTTP {e.code}: {e.reason}')
+    print(f'[ERROR] HTTP {e.code}: {e.reason}')
     print(e.read().decode('utf-8'))
     sys.exit(1)
 except Exception as e:
-    print(f'✗ Error: {e}')
+    print(f'[ERROR] {type(e).__name__}: {e}')
     sys.exit(1)
 
 # Step 2: Create backend service
@@ -49,22 +57,18 @@ service_payload = {
     'autoDeploy': 'yes',
     'serviceDetails': {
         'env': 'python',
-        'pythonVersion': '3.11',
-        'buildCommand': 'pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput',
-        'startCommand': 'gunicorn config.wsgi:application --bind 0.0.0.0:10000',
-        'healthCheckPath': '/api/schema/'
+        'envSpecificDetails': {
+            'pythonVersion': '3.11',
+            'buildCommand': 'pip install -r requirements.txt && python manage.py migrate',
+            'startCommand': 'gunicorn config.wsgi:application --bind 0.0.0.0:10000'
+        }
     },
     'envVars': [
         {'key': 'DEBUG', 'value': 'False'},
-        {'key': 'ALLOWED_HOSTS', 'value': '*.render.com,breathing-esg-backend.onrender.com'},
-        {'key': 'SECRET_KEY', 'value': 'django-production-secret-key-change-me'},
-        {'key': 'DB_ENGINE', 'value': 'django.db.backends.postgresql'},
-        {'key': 'DB_NAME', 'value': 'breathe_esg'},
-        {'key': 'DB_USER', 'value': 'postgres'},
-        {'key': 'DB_PASSWORD', 'value': 'change-me'},
-        {'key': 'DB_HOST', 'value': 'localhost'},
-        {'key': 'DB_PORT', 'value': '5432'},
-        {'key': 'CORS_ALLOWED_ORIGINS', 'value': 'https://breathe-esg-frontend-oa4lv1agf-ankitsingh-webs-projects.vercel.app'}
+        {'key': 'ALLOWED_HOSTS', 'value': '*.render.com'},
+        {'key': 'SECRET_KEY', 'value': 'django-insecure-render-prod-change-me'},
+        {'key': 'DB_ENGINE', 'value': 'django.db.backends.sqlite3'},
+        {'key': 'DB_NAME', 'value': 'db.sqlite3'}
     ]
 }
 
@@ -72,20 +76,23 @@ req_data = json.dumps(service_payload).encode('utf-8')
 req = urllib.request.Request('https://api.render.com/v1/services', headers=headers, data=req_data, method='POST')
 
 try:
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    with urllib.request.urlopen(req, timeout=60) as resp:
         service_resp = json.load(resp)
-    print(f"✓ Service created: {service_resp['service']['name']}")
-    print(f"  Service ID: {service_resp['service']['id']}")
-    print(f"  Dashboard: {service_resp['service']['dashboardUrl']}")
+    service_info = service_resp.get('service', service_resp)
+    svc_id = service_info.get('id', 'N/A')
+    svc_name = service_info.get('name', 'unknown')
+    svc_url = service_info.get('dashboardUrl', 'N/A')
+    print(f"[OK] Service created: {svc_name}")
+    print(f"  Service ID: {svc_id}")
+    print(f"  Dashboard: {svc_url}")
 except urllib.error.HTTPError as e:
     error_msg = e.read().decode('utf-8')
-    print(f'✗ HTTP {e.code}: {e.reason}')
-    print(error_msg)
-    # Continue even if service creation fails (it may already exist)
+    print(f'[ERROR] HTTP {e.code}: {e.reason}')
+    print(f'  {error_msg}')
 except Exception as e:
-    print(f'✗ Error: {e}')
+    print(f'[ERROR] {type(e).__name__}: {e}')
     sys.exit(1)
 
-print('\n✓ Backend deployment initiated on Render!')
-print('Note: Render will auto-deploy from the GitHub repository.')
-print('You may need to set up PostgreSQL database and configure environment variables in the Render dashboard.')
+print('\n[SUCCESS] Backend deployment initiated on Render!')
+print('View and manage your service at: https://dashboard.render.com')
+
